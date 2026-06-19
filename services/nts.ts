@@ -195,6 +195,28 @@ const getString = (record: Record<string, unknown>, key: string) => {
   return typeof value === "string" ? value : null;
 };
 
+const decodeHtmlEntities = (value: string) =>
+  value.replace(
+    /&(?:amp|apos|gt|lt|quot|#(\d+)|#x([\da-f]+));/gi,
+    (entity, decimal: string | undefined, hexadecimal: string | undefined) => {
+      if (decimal) {
+        return String.fromCodePoint(Number(decimal));
+      }
+      if (hexadecimal) {
+        return String.fromCodePoint(Number.parseInt(hexadecimal, 16));
+      }
+
+      const namedEntities: Record<string, string> = {
+        "&amp;": "&",
+        "&apos;": "'",
+        "&gt;": ">",
+        "&lt;": "<",
+        "&quot;": '"',
+      };
+      return namedEntities[entity.toLowerCase()] ?? entity;
+    }
+  );
+
 const getProgrammeArtwork = (programme: Record<string, unknown>) => {
   const embeds = programme.embeds;
   if (!(isRecord(embeds) && isRecord(embeds.details))) {
@@ -294,7 +316,7 @@ export async function fetchLiveProgrammes(
         channel,
         endTime,
         startTime,
-        title,
+        title: decodeHtmlEntities(title),
       };
     }
   }
