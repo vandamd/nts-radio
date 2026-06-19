@@ -290,7 +290,8 @@ export async function fetchMixtapeNowPlaying(
 export async function fetchLiveProgrammes(
   signal?: AbortSignal
 ): Promise<Record<number, LiveProgramme>> {
-  const response = await fetch(`${API_URL}/live`, { signal });
+  const cacheKey = Math.floor(Date.now() / 60_000);
+  const response = await fetch(`${API_URL}/live?cache=${cacheKey}`, { signal });
   if (!response.ok) {
     throw new Error(`NTS returned ${response.status}`);
   }
