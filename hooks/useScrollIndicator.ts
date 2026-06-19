@@ -14,7 +14,6 @@ interface UseScrollIndicatorReturn {
   handleScroll: ScrollHandlerProcessed;
   scrollIndicatorHeight: number;
   scrollIndicatorStyle: AnimatedStyle<{
-    height: number;
     transform: { translateY: number }[];
   }>;
   scrollViewHeight: number;
@@ -64,7 +63,6 @@ export function useScrollIndicator(): UseScrollIndicatorReturn {
 
     if (totalHeight <= viewportHeight || thumbHeight <= 0) {
       return {
-        height: thumbHeight,
         transform: [{ translateY: 0 }],
       };
     }
@@ -77,7 +75,6 @@ export function useScrollIndicator(): UseScrollIndicatorReturn {
     );
 
     return {
-      height: thumbHeight,
       transform: [{ translateY: nextPosition }],
     };
   });
