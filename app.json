@@ -1,23 +1,25 @@
 {
   "expo": {
-    "name": "appname",
-    "slug": "appname",
+    "name": "NTS Radio",
+    "slug": "nts",
     "version": "1.0.0",
     "orientation": "portrait",
-    "scheme": "appname",
+    "scheme": "nts",
     "icon": "./assets/images/icon.png",
     "android": {
       "backgroundColor": "#000000",
-      "package": "com.vandam.appname"
+      "package": "com.vandam.nts",
+      "permissions": [
+        "android.permission.FOREGROUND_SERVICE",
+        "android.permission.FOREGROUND_SERVICE_MEDIA_PLAYBACK"
+      ]
     },
     "plugins": [
       "expo-router",
       [
         "expo-font",
         {
-          "fonts": [
-            "./assets/fonts/PublicSans-Regular.ttf"
-          ]
+          "fonts": ["./assets/fonts/PublicSans-Regular.ttf"]
         }
       ],
       "./plugins/withAndroidConfigChanges",
