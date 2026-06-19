@@ -1,5 +1,4 @@
 import { memo } from "react";
-import type { ImageSourcePropType } from "react-native";
 import { StyleSheet, View } from "react-native";
 import { HapticPressable } from "@/components/HapticPressable";
 import { StyledText } from "@/components/StyledText";
@@ -7,7 +6,7 @@ import { TrackArtwork } from "@/components/TrackArtwork";
 import { n } from "@/utils/scaling";
 
 interface MediaListItemProps {
-  artwork: ImageSourcePropType;
+  artwork: number;
   onPress: () => void;
   title: string;
 }

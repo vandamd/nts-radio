@@ -23,7 +23,9 @@
         }
       ],
       "./plugins/withAndroidConfigChanges",
-      "./plugins/withAndroidTheme"
+      "./plugins/withAndroidTheme",
+      "expo-asset",
+      "expo-image"
     ],
     "experiments": {
       "typedRoutes": true

@@ -1,9 +1,7 @@
-import type { ImageSourcePropType } from "react-native";
-
 export type RadioStreamKind = "live" | "mixtape";
 
 export interface RadioStream {
-  artwork: ImageSourcePropType;
+  artwork: number;
   id: string;
   kind: RadioStreamKind;
   liveChannel?: 1 | 2;

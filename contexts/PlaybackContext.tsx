@@ -1,14 +1,16 @@
+import { Asset } from "expo-asset";
 import {
   createContext,
   type ReactNode,
+  use,
   useCallback,
-  useContext,
   useEffect,
+  useEffectEvent,
   useMemo,
+  useReducer,
   useRef,
-  useState,
 } from "react";
-import { AppState, Image } from "react-native";
+import { AppState } from "react-native";
 import TrackPlayer, {
   AppKilledPlaybackBehavior,
   Capability,
@@ -40,7 +42,30 @@ const getErrorMessage = (error: unknown) =>
   error instanceof Error ? error.message : String(error);
 
 const getArtworkUri = (stream: RadioStream) =>
-  Image.resolveAssetSource(stream.artwork).uri;
+  Asset.fromModule(stream.artwork).uri;
+
+interface PlaybackData {
+  activeStream: RadioStream | null;
+  error: string | null;
+  isStarting: boolean;
+  mixtapeNowPlaying: MixtapeNowPlaying | null;
+  programmes: Record<number, LiveProgramme>;
+}
+
+const initialPlaybackData: PlaybackData = {
+  activeStream: null,
+  error: null,
+  isStarting: false,
+  mixtapeNowPlaying: null,
+  programmes: {},
+};
+
+function playbackDataReducer(
+  state: PlaybackData,
+  update: Partial<PlaybackData>
+): PlaybackData {
+  return { ...state, ...update };
+}
 
 const ensurePlayerReady = async () => {
   if (!setupPromise) {
@@ -70,14 +95,12 @@ const ensurePlayerReady = async () => {
 };
 
 export function PlaybackProvider({ children }: { children: ReactNode }) {
-  const [activeStream, setActiveStream] = useState<RadioStream | null>(null);
-  const [error, setError] = useState<string | null>(null);
-  const [isStarting, setIsStarting] = useState(false);
-  const [programmes, setProgrammes] = useState<Record<number, LiveProgramme>>(
-    {}
+  const [playbackData, updatePlaybackData] = useReducer(
+    playbackDataReducer,
+    initialPlaybackData
   );
-  const [mixtapeNowPlaying, setMixtapeNowPlaying] =
-    useState<MixtapeNowPlaying | null>(null);
+  const { activeStream, error, isStarting, mixtapeNowPlaying, programmes } =
+    playbackData;
   const activeStreamRef = useRef(activeStream);
   const playbackState = usePlaybackState();
 
@@ -85,7 +108,7 @@ export function PlaybackProvider({ children }: { children: ReactNode }) {
 
   useEffect(() => {
     if (playbackState.state === State.Playing) {
-      setIsStarting(false);
+      updatePlaybackData({ isStarting: false });
     }
   }, [playbackState.state]);
 
@@ -121,9 +144,9 @@ export function PlaybackProvider({ children }: { children: ReactNode }) {
   const refreshLiveProgrammes = useCallback(async () => {
     try {
       const nextProgrammes = await fetchLiveProgrammes();
-      setProgrammes((current) =>
-        Object.keys(nextProgrammes).length > 0 ? nextProgrammes : current
-      );
+      if (Object.keys(nextProgrammes).length > 0) {
+        updatePlaybackData({ programmes: nextProgrammes });
+      }
       await updateLiveMetadata(nextProgrammes);
     } catch {
       // Keep the last successful programme metadata during network failures.
@@ -142,7 +165,7 @@ export function PlaybackProvider({ children }: { children: ReactNode }) {
         return;
       }
 
-      setMixtapeNowPlaying(nextNowPlaying);
+      updatePlaybackData({ mixtapeNowPlaying: nextNowPlaying });
       await ensurePlayerReady();
       const activeIndex = await TrackPlayer.getActiveTrackIndex();
       if (activeIndex !== undefined) {
@@ -157,17 +180,21 @@ export function PlaybackProvider({ children }: { children: ReactNode }) {
     }
   }, []);
 
+  const refreshMixtapeOnAppActive = useEffectEvent(() => {
+    refreshMixtapeNowPlaying();
+  });
+
   useEffect(() => {
     refreshLiveProgrammes();
     const subscription = AppState.addEventListener("change", (state) => {
       if (state === "active") {
         refreshLiveProgrammes();
-        refreshMixtapeNowPlaying();
+        refreshMixtapeOnAppActive();
       }
     });
 
     return () => subscription.remove();
-  }, [refreshLiveProgrammes, refreshMixtapeNowPlaying]);
+  }, [refreshLiveProgrammes]);
 
   useEffect(() => {
     if (activeStream?.kind !== "live") {
@@ -180,7 +207,7 @@ export function PlaybackProvider({ children }: { children: ReactNode }) {
 
   useEffect(() => {
     if (activeStream?.kind !== "mixtape") {
-      setMixtapeNowPlaying(null);
+      updatePlaybackData({ mixtapeNowPlaying: null });
       return;
     }
 
@@ -211,9 +238,11 @@ export function PlaybackProvider({ children }: { children: ReactNode }) {
 
   const playStream = useCallback(
     async (stream: RadioStream) => {
-      setError(null);
-      setActiveStream(stream);
-      setIsStarting(true);
+      updatePlaybackData({
+        activeStream: stream,
+        error: null,
+        isStarting: true,
+      });
       try {
         await ensurePlayerReady();
         await TrackPlayer.reset();
@@ -243,8 +272,10 @@ export function PlaybackProvider({ children }: { children: ReactNode }) {
         });
         await TrackPlayer.play();
       } catch (playbackError) {
-        setIsStarting(false);
-        setError(getErrorMessage(playbackError));
+        updatePlaybackData({
+          error: getErrorMessage(playbackError),
+          isStarting: false,
+        });
         throw playbackError;
       }
     },
@@ -258,7 +289,7 @@ export function PlaybackProvider({ children }: { children: ReactNode }) {
   const isPlaying = playbackState.state === State.Playing;
 
   const togglePlayPause = useCallback(async () => {
-    setError(null);
+    updatePlaybackData({ error: null });
     try {
       await ensurePlayerReady();
       if (isPlaying) {
@@ -267,7 +298,7 @@ export function PlaybackProvider({ children }: { children: ReactNode }) {
         await playStream(activeStream);
       }
     } catch (playbackError) {
-      setError(getErrorMessage(playbackError));
+      updatePlaybackData({ error: getErrorMessage(playbackError) });
     }
   }, [activeStream, isPlaying, playStream]);
 
@@ -302,7 +333,7 @@ export function PlaybackProvider({ children }: { children: ReactNode }) {
 }
 
 export function usePlayback() {
-  const context = useContext(PlaybackContext);
+  const context = use(PlaybackContext);
   if (!context) {
     throw new Error("usePlayback must be used within PlaybackProvider");
   }

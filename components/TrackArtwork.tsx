@@ -1,17 +1,11 @@
+import { Image, type ImageSource } from "expo-image";
 import { memo } from "react";
-import {
-  Image,
-  type ImageSourcePropType,
-  type StyleProp,
-  StyleSheet,
-  View,
-  type ViewStyle,
-} from "react-native";
+import { type StyleProp, StyleSheet, View, type ViewStyle } from "react-native";
 import { n } from "@/utils/scaling";
 
 interface TrackArtworkProps {
   size: number;
-  source?: ImageSourcePropType | null;
+  source?: ImageSource | number | null;
   style?: StyleProp<ViewStyle>;
 }
 
@@ -28,7 +22,7 @@ function TrackArtworkComponent({ size, source, style }: TrackArtworkProps) {
       ]}
     >
       {source ? (
-        <Image fadeDuration={0} source={source} style={styles.image} />
+        <Image contentFit="cover" source={source} style={styles.image} />
       ) : null}
     </View>
   );
@@ -45,7 +39,6 @@ const styles = StyleSheet.create({
   },
   image: {
     height: "100%",
-    resizeMode: "cover",
     width: "100%",
   },
 });

@@ -14,6 +14,12 @@ interface ContentContainerProps {
   style?: StyleProp<ViewStyle>;
 }
 
+const handleBack = () => {
+  if (router.canGoBack()) {
+    router.back();
+  }
+};
+
 export default function ContentContainer({
   children,
   contentWidth = "normal",
@@ -25,12 +31,6 @@ export default function ContentContainer({
   const canSwipeBack = Boolean(headerTitle) && !hideBackButton;
   const horizontalPadding =
     contentWidth === "playing" || contentWidth === "wide" ? n(20) : n(37);
-
-  const handleBack = () => {
-    if (router.canGoBack()) {
-      router.back();
-    }
-  };
 
   const content = (
     <View

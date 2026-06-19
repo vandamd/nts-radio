@@ -15,24 +15,19 @@ const formatClockTime = (timestamp: string) =>
     minute: "2-digit",
   });
 
-function useCurrentTime(enabled: boolean) {
-  const [currentTime, setCurrentTime] = useState(Date.now());
+function useCurrentTime() {
+  const [currentTime, setCurrentTime] = useState(() => Date.now());
 
   useEffect(() => {
-    if (!enabled) {
-      return;
-    }
-
-    setCurrentTime(Date.now());
     const interval = setInterval(() => setCurrentTime(Date.now()), 1000);
     return () => clearInterval(interval);
-  }, [enabled]);
+  }, []);
 
   return currentTime;
 }
 
 function ProgressIndicator({ programme }: { programme: LiveProgramme | null }) {
-  const currentTime = useCurrentTime(true);
+  const currentTime = useCurrentTime();
   const progress = useMemo(() => {
     if (!programme) {
       return 0;

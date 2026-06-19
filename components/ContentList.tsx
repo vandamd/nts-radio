@@ -1,19 +1,21 @@
 import { router } from "expo-router";
 import {
-  Animated,
-  FlatList,
   type FlatListProps,
   StyleSheet,
   View,
   type ViewStyle,
 } from "react-native";
+import Animated from "react-native-reanimated";
 import { Header, type HeaderAction } from "@/components/Header";
 import { SwipeBackContainer } from "@/components/SwipeBackContainer";
 import { useScrollIndicator } from "@/hooks/useScrollIndicator";
 import { n } from "@/utils/scaling";
 
 interface ContentListProps<ItemT>
-  extends Omit<FlatListProps<ItemT>, "contentContainerStyle" | "data"> {
+  extends Omit<
+    FlatListProps<ItemT>,
+    "CellRendererComponent" | "contentContainerStyle" | "data"
+  > {
   contentGap?: number;
   data: ItemT[];
   headerTitle: string;
@@ -21,6 +23,12 @@ interface ContentListProps<ItemT>
   listStyle?: ViewStyle;
   rightAction?: HeaderAction;
 }
+
+const handleBack = () => {
+  if (router.canGoBack()) {
+    router.back();
+  }
+};
 
 export function ContentList<ItemT>({
   contentGap = 8,
@@ -34,17 +42,11 @@ export function ContentList<ItemT>({
   const {
     handleScroll,
     scrollIndicatorHeight,
-    scrollIndicatorPosition,
+    scrollIndicatorStyle,
     setContentHeight,
     setScrollViewHeight,
   } = useScrollIndicator();
   const canSwipeBack = !hideBackButton;
-
-  const handleBack = () => {
-    if (router.canGoBack()) {
-      router.back();
-    }
-  };
 
   return (
     <SwipeBackContainer enabled={canSwipeBack} onSwipeBack={handleBack}>
@@ -56,7 +58,7 @@ export function ContentList<ItemT>({
           rightAction={rightAction}
         />
         <View style={styles.listWrapper}>
-          <FlatList
+          <Animated.FlatList
             contentContainerStyle={[
               styles.content,
               { gap: n(contentGap) },
@@ -82,10 +84,8 @@ export function ContentList<ItemT>({
               <Animated.View
                 style={[
                   styles.scrollIndicatorThumb,
-                  {
-                    height: scrollIndicatorHeight,
-                    transform: [{ translateY: scrollIndicatorPosition }],
-                  },
+                  { height: scrollIndicatorHeight },
+                  scrollIndicatorStyle,
                 ]}
               />
             </View>
