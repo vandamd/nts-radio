@@ -19,7 +19,9 @@
       [
         "expo-font",
         {
-          "fonts": ["./assets/fonts/PublicSans-Regular.ttf"]
+          "fonts": [
+            "./assets/fonts/PublicSans-Regular.ttf"
+          ]
         }
       ],
       "./plugins/withAndroidConfigChanges",
@@ -31,7 +33,10 @@
       "typedRoutes": true
     },
     "extra": {
-      "router": {}
+      "router": {},
+      "eas": {
+        "projectId": "e98d74da-0f9f-4ea5-9110-e1e5775c011a"
+      }
     }
   }
 }
