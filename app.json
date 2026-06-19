@@ -2,7 +2,7 @@
   "expo": {
     "name": "NTS Radio",
     "slug": "nts",
-    "version": "1.0.0",
+    "version": "1.0.1",
     "orientation": "portrait",
     "scheme": "nts",
     "icon": "./assets/images/icon.png",
